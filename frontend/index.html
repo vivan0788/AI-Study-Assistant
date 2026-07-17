@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AuraStudy - AI Co-Pilot for Students</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="dark-theme">
+
+  <div id="auth-container" class="auth-wrapper">
+    <div class="auth-card">
+      <div class="brand">
+        <span class="logo-icon">⚡</span>
+        <h2>AuraStudy</h2>
+        <p>Your Ultimate AI Study Companion</p>
+      </div>
+
+      <div class="tabs">
+        <button id="tab-login" class="tab active" onclick="switchAuthTab('login')">Sign In</button>
+        <button id="tab-register" class="tab" onclick="switchAuthTab('register')">Sign Up</button>
+      </div>
+
+      <form id="auth-form" onsubmit="handleAuthSubmit(event)">
+        <div class="input-group" id="name-group" style="display: none;">
+          <label>Full Name</label>
+          <input type="text" id="auth-name" placeholder="John Doe">
+        </div>
+        <div class="input-group">
+          <label>Email Address</label>
+          <input type="email" id="auth-email" placeholder="you@domain.com" required>
+        </div>
+        <div class="input-group">
+          <label>Password</label>
+          <input type="password" id="auth-password" placeholder="••••••••" required>
+        </div>
+        <button type="submit" id="auth-submit-btn" class="btn-primary">Continue</button>
+      </form>
+    </div>
+  </div>
+
+  <div id="app-container" class="app-grid" style="display: none;">
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <span class="logo-icon">⚡</span>
+        <h3>AuraStudy</h3>
+      </div>
+
+      <nav class="sidebar-nav">
+        <button class="nav-item active" onclick="switchView('dashboard')">📋 Dashboard</button>
+        <button class="nav-item" onclick="switchView('summary')">📝 Summary & Notes</button>
+        <button class="nav-item" onclick="switchView('chat')">💬 Notes Chat</button>
+        <button class="nav-item" onclick="switchView('quiz')">✍️ AI Quizzes</button>
+        <button class="nav-item" onclick="switchView('flashcards')">🃏 Flashcards</button>
+        <button class="nav-item" onclick="switchView('planner')">📅 Study Planner</button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="user-profile">
+          <img id="user-avatar" src="" alt="avatar" class="avatar">
+          <div class="user-meta">
+            <span id="user-name" class="name">Loading...</span>
+            <span id="user-streak" class="streak">🔥 0 Days</span>
+          </div>
+        </div>
+        <button class="btn-secondary" onclick="logout()">Sign Out</button>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header class="main-header">
+        <div class="search-bar-container">
+          <input type="text" id="global-search" placeholder="Search notes..." oninput="handleSearch(this.value)">
+          <div id="search-results-dropdown" class="dropdown-results"></div>
+        </div>
+        <button class="theme-toggle" onclick="toggleTheme()">🌓 Theme</button>
+      </header>
+
+      <section id="view-dashboard" class="content-view active">
+        <div class="hero-card">
+          <h1>Welcome back, <span id="hero-username">Student</span>! 👋</h1>
+          <p>Supercharge your learning today. Upload your notes below to get started.</p>
+        </div>
+
+        <div class="dashboard-grid">
+          <div class="glass-card upload-section">
+            <h3>📂 Upload PDF Notes</h3>
+            <p class="subtitle">Extract core definitions, take smart quizzes & build customized planners.</p>
+            <div class="drop-zone" onclick="document.getElementById('pdf-file-input').click()">
+              <span class="upload-icon">📤</span>
+              <p>Drag & drop or Click to browse</p>
+              <input type="file" id="pdf-file-input" accept="application/pdf" style="display: none;" onchange="uploadPdf(this)">
+            </div>
+            <div id="upload-status"></div>
+          </div>
+
+          <div class="glass-card doc-list-section">
+            <h3>📑 Your Study Vault</h3>
+            <ul id="uploaded-documents" class="doc-list">
+              </ul>
+          </div>
+        </div>
+      </section>
+
+      <section id="view-summary" class="content-view">
+        <div class="selector-bar">
+          <label>Select Document:</label>
+          <select id="summary-doc-select" class="styled-select" onchange="loadSummaryView()"></select>
+        </div>
+        <div class="summary-layout">
+          <div class="glass-card">
+            <h2>📝 Executive Summary</h2>
+            <div id="short-summary-box" class="loading-placeholder">Select a document above to begin...</div>
+            <hr class="divider">
+            <h3>Detailed Breakdown</h3>
+            <div id="detailed-summary-box">...</div>
+          </div>
+          <div class="glass-card">
+            <h2>💡 Core Terms & Equations</h2>
+            <h3>Important Definitions</h3>
+            <ul id="definitions-list" class="definition-list">...</ul>
+            <hr class="divider">
+            <h3>Formulas</h3>
+            <ul id="formulas-list" class="formula-list">...</ul>
+          </div>
+        </div>
+      </section>
+
+      <section id="view-chat" class="content-view">
+        <div class="selector-bar">
+          <label>Chat With:</label>
+          <select id="chat-doc-select" class="styled-select"></select>
+        </div>
+        <div class="chat-container glass-card">
+          <div id="chat-messages" class="chat-messages">
+            <div class="msg system">Select an uploaded book or lesson, then fire away! Questions are answered purely using PDF scope.</div>
+          </div>
+          <div class="chat-input-area">
+            <input type="text" id="chat-input-text" placeholder="Query context notes..." onkeydown="if(event.key === 'Enter') sendChatMessage()">
+            <button class="btn-primary" onclick="sendChatMessage()">Send</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="view-quiz" class="content-view">
+        <div class="selector-bar">
+          <label>Generate Exam from:</label>
+          <select id="quiz-doc-select" class="styled-select" onchange="loadQuiz()"></select>
+        </div>
+        <div id="quiz-container" class="glass-card">
+          <div class="quiz-placeholder">Please select a PDF document to generate testing materials.</div>
+        </div>
+      </section>
+
+      <section id="view-flashcards" class="content-view">
+        <div class="selector-bar">
+          <label>Build Deck from:</label>
+          <select id="flashcard-doc-select" class="styled-select" onchange="loadFlashcards()"></select>
+        </div>
+        <div class="flashcard-engine">
+          <div class="flashcard" onclick="flipFlashcard()">
+            <div class="flashcard-inner" id="card-inner">
+              <div class="flashcard-front">
+                <span class="card-badge">Front (Question)</span>
+                <p id="flashcard-question">Select an uploaded guide on the bar above to study flashcards.</p>
+              </div>
+              <div class="flashcard-back">
+                <span class="card-badge">Back (Answer)</span>
+                <p id="flashcard-answer">Answer will display here once loaded.</p>
+              </div>
+            </div>
+          </div>
+          <div class="flashcard-controls">
+            <button class="btn-secondary" onclick="prevFlashcard()">← Previous</button>
+            <span id="flashcard-index">0 / 0</span>
+            <button class="btn-secondary" onclick="nextFlashcard()">Next →</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="view-planner" class="content-view">
+        <div class="planner-grid">
+          <div class="glass-card">
+            <h3>📅 Build AI Study Schedule</h3>
+            <div class="input-group">
+              <label>Exam Date</label>
+              <input type="date" id="plan-exam-date">
+            </div>
+            <div class="input-group">
+              <label>Target Subjects (Comma Separated)</label>
+              <input type="text" id="plan-subjects" placeholder="Calculus, Mechanics, Thermodynamics">
+            </div>
+            <div class="input-group">
+              <label>Daily Study Commitment (Hours)</label>
+              <input type="number" id="plan-hours" min="1" max="16" value="3">
+            </div>
+            <button class="btn-primary" onclick="generateStudyPlan()">Generate Dynamic Blueprint</button>
+          </div>
+
+          <div class="glass-card" id="planner-output-card">
+            <h3>📊 Your Study Blueprint</h3>
+            <div id="planner-output" class="planner-placeholder">Configure timeline settings to generate.</div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
