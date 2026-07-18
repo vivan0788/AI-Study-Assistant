@@ -8,17 +8,23 @@ const apiCall = async (endpoint, options = {}) => {
         ...options.headers
     };
 
-    // Slash parameters clean up
-    const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+    // Ensure endpoint starts with /
+    let cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+    
+    // Agar endpoint me pehle se '/api' nahi hai, to add karein
+    if (!cleanEndpoint.startsWith('/api')) {
+        cleanEndpoint = `/api${cleanEndpoint}`;
+    }
+
     const fullUrl = `${API_BASE_URL}${cleanEndpoint}`;
 
     try {
         const res = await fetch(fullUrl, { ...options, headers });
         const data = await res.json();
-        if (!res.ok) throw new Error(data.error || "Internal Server Error");
+        if (!res.ok) throw new Error(data.error || "Something went wrong");
         return data;
     } catch (err) {
-        console.error("Fetch failed path:", fullUrl, err.message);
+        console.error("Fetch failed for:", fullUrl, err.message);
         throw err;
     }
 };
