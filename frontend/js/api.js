@@ -8,23 +8,30 @@ const apiCall = async (endpoint, options = {}) => {
         ...options.headers
     };
 
-    // Ensure endpoint starts with /
-    let cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+    // Clean structural pathing logic
+    let cleanEndpoint = endpoint.trim();
     
-    // Agar endpoint me pehle se '/api' nahi hai, to add karein
-    if (!cleanEndpoint.startsWith('/api')) {
-        cleanEndpoint = `/api${cleanEndpoint}`;
+    // Agar endpoint ke start mein /api/ hai, toh use safe clean karein taaki duplicate na ho
+    if (cleanEndpoint.startsWith('/api')) {
+        cleanEndpoint = cleanEndpoint.replace('/api', '');
+    } else if (cleanEndpoint.startsWith('api')) {
+        cleanEndpoint = cleanEndpoint.replace('api', '');
     }
 
-    const fullUrl = `${API_BASE_URL}${cleanEndpoint}`;
+    // Force secure routing format: /api/ + endpoint without extra slashes
+    if (!cleanEndpoint.startsWith('/')) {
+        cleanEndpoint = `/${cleanEndpoint}`;
+    }
+    
+    const fullUrl = `${API_BASE_URL}/api${cleanEndpoint}`;
 
     try {
         const res = await fetch(fullUrl, { ...options, headers });
         const data = await res.json();
-        if (!res.ok) throw new Error(data.error || "Something went wrong");
+        if (!res.ok) throw new Error(data.error || "Request failed");
         return data;
     } catch (err) {
-        console.error("Fetch failed for:", fullUrl, err.message);
+        console.error("API Fetch Target Error:", fullUrl, err.message);
         throw err;
     }
 };
