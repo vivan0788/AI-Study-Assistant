@@ -1,37 +1,73 @@
-const API_BASE_URL = "https://ai-study-assistant-m4m7.onrender.com"; 
+// frontend/js/api.js
+const BASE_URL = 'https://ai-study-assistant-m4m7.onrender.com/api';
 
-const apiCall = async (endpoint, options = {}) => {
-    const token = localStorage.getItem("auth_token");
-    const headers = {
-        "Content-Type": "application/json",
-        ...(token && { "Authorization": `Bearer ${token}` }),
-        ...options.headers
-    };
+/**
+ * Ek common helper function jo response ko safely text format mein nikalta hai,
+ * use log karta hai, aur check karta hai ki HTML (jaise Vercel ka 404 page) toh nahi aa raha.
+ */
+async function safeFetch(endpoint, options = {}) {
+  // Check karein ki endpoint proper format mein hai ya nahi
+  const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+  const url = `${BASE_URL}${cleanEndpoint}`;
 
-    // Clean structural pathing logic
-    let cleanEndpoint = endpoint.trim();
-    
-    // Agar endpoint ke start mein /api/ hai, toh use safe clean karein taaki duplicate na ho
-    if (cleanEndpoint.startsWith('/api')) {
-        cleanEndpoint = cleanEndpoint.replace('/api', '');
-    } else if (cleanEndpoint.startsWith('api')) {
-        cleanEndpoint = cleanEndpoint.replace('api', '');
+  console.log(`[API Request] Method: ${options.method || 'GET'} | URL: ${url}`);
+
+  try {
+    const response = await fetch(url, options);
+    console.log(`[API Response Status] Code: ${response.status} ${response.statusText}`);
+
+    // Response ko sabse pehle raw text mein read karein taaki HTML hone par crash na ho
+    const rawBody = await response.text();
+    console.log(`[API Response Body]:`, rawBody);
+
+    if (!response.ok) {
+      throw new Error(`HTTP Error ${response.status}: ${rawBody || response.statusText}`);
     }
 
-    // Force secure routing format: /api/ + endpoint without extra slashes
-    if (!cleanEndpoint.startsWith('/')) {
-        cleanEndpoint = `/${cleanEndpoint}`;
+    // Agar server ne HTML return kiya hai (jo '<' se start hota hai) toh error throw karein
+    if (rawBody.trim().startsWith('<!DOCTYPE') || rawBody.trim().startsWith('<html')) {
+      throw new Error("Server returned HTML instead of valid JSON. Check your API routes.");
     }
-    
-    const fullUrl = `${API_BASE_URL}/api${cleanEndpoint}`;
 
-    try {
-        const res = await fetch(fullUrl, { ...options, headers });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || "Request failed");
-        return data;
-    } catch (err) {
-        console.error("API Fetch Target Error:", fullUrl, err.message);
-        throw err;
-    }
+    // Agar sab sahi hai, tabhi JSON parse karein
+    return JSON.parse(rawBody);
+  } catch (error) {
+    console.error(`[API Error Log] Failed during request to ${url}:`, error);
+    throw error;
+  }
+}
+
+// Global window object par expose kar rahe hain taaki auth.js aur app.js ise use kar sakein
+window.apiService = {
+  login: async (email, password) => {
+    return safeFetch('/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    });
+  },
+
+  register: async (username, email, password) => {
+    return safeFetch('/auth/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, email, password }),
+    });
+  },
+
+  // /pdf/upload endpoint ab correctly '/api/pdf/upload' par hit karega
+  uploadPDF: async (formData) => {
+    return safeFetch('/pdf/upload', {
+      method: 'POST',
+      body: formData, // FormData ke sath Content-Type header manually nahi lagate
+    });
+  },
+
+  generateQuestions: async (documentId) => {
+    return safeFetch('/ai/generate-questions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ documentId }),
+    });
+  }
 };
