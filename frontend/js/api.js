@@ -1,4 +1,4 @@
-const API_BASE_URL = "https://ai-study-assistant-m4m7.onrender.com/api"; // Render Endpoint after backend deploy
+const API_BASE_URL = "https://ai-study-assistant-m4m7.onrender.com//api"; // Render Endpoint after backend deploy
 
 const apiCall = async (endpoint, options = {}) => {
   const token = localStorage.getItem("auth_token");
