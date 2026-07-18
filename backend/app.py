@@ -1,12 +1,22 @@
-from flask import Flask, jsonify
+import sys
+import os
+
+# Render par relative imports ko fix karne ke liye path manually force kar rahe hain
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+from flask import Flask
 from flask_cors import CORS
 from config import Config
+
+# Pehle agar 'from routes.auth import ...' tha, toh use aise hi rehne dein
+# Kyunki humne upar sys.path fix kar diya hai, ab Python ko 'routes' easily mil jayega.
 from routes.auth import auth_bp
 from routes.pdf import pdf_bp
 from routes.ai import ai_bp
 from routes.user import user_bp
 
 app = Flask(__name__)
+# ... (baki ka bacha hua code bilkul pehle jaisa hi rehne dein)
 # Enable CORS for frontend clients safely
 CORS(app, resources={r"/*": {"origins": "*"}})
 
