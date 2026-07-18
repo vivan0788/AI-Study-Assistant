@@ -7,7 +7,7 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 if current_dir not in sys.path:
     sys.path.insert(0, current_dir)
 
-from flask import Flask
+from flask import Flask, jsonify
 from flask_cors import CORS
 from config import Config
 
