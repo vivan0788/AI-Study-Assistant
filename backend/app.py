@@ -1,21 +1,24 @@
-import sys
 import os
+import sys
 
-# Render par relative imports ko fix karne ke liye path manually force kar rahe hain
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+# Current script (app.py) ki absolute directory path nikal kar sys.path mein daal rahe hain
+# Isse Python ko 'routes' aur 'utils' folders direct root directory par mil jayenge
+current_dir = os.path.dirname(os.path.abspath(__file__))
+if current_dir not in sys.path:
+    sys.path.insert(0, current_dir)
 
 from flask import Flask
 from flask_cors import CORS
 from config import Config
 
-# Pehle agar 'from routes.auth import ...' tha, toh use aise hi rehne dein
-# Kyunki humne upar sys.path fix kar diya hai, ab Python ko 'routes' easily mil jayega.
+# Ab Python bina kisi ModuleNotFoundError ke inhe load kar lega
 from routes.auth import auth_bp
 from routes.pdf import pdf_bp
 from routes.ai import ai_bp
 from routes.user import user_bp
 
 app = Flask(__name__)
+# ... (baki ka niche ka code bilkul pehle jaisa same rehne dein)
 # ... (baki ka bacha hua code bilkul pehle jaisa hi rehne dein)
 # Enable CORS for frontend clients safely
 CORS(app, resources={r"/*": {"origins": "*"}})
