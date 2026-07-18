@@ -1,4 +1,4 @@
-const API_BASE_URL = "https://ai-study-assistant-m4m7.onrender.com/api"; 
+const API_BASE_URL = "https://ai-study-assistant-m4m7.onrender.com"; 
 
 const apiCall = async (endpoint, options = {}) => {
     const token = localStorage.getItem("auth_token");
