@@ -1,115 +1,42 @@
-let appState = {
-  pdfs: [],
-  selectedPdfId: null,
-  activeView: 'dashboard',
-  flashcards: [],
-  currentFlashcardIndex: 0
-};
+// frontend/js/app.js
+document.addEventListener('DOMContentLoaded', () => {
+  const uploadForm = document.getElementById('upload-form');
+  const fileInput = document.getElementById('pdf-file');
+  const statusDisplay = document.getElementById('upload-status');
 
-// Switch Sidebar Views
-function switchView(viewId) {
-  appState.activeView = viewId;
-  document.querySelectorAll(".content-view").forEach(el => el.classList.remove("active"));
-  document.querySelectorAll(".nav-item").forEach(el => el.classList.remove("active"));
-  
-  const targetView = document.getElementById(`view-${viewId}`);
-  if (targetView) targetView.classList.add("active");
-  
-  // Update state elements based on active layout
-  populateDocumentDropdowns();
-}
+  if (uploadForm) {
+    uploadForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      if (!fileInput.files || fileInput.files.length === 0) {
+        return alert('Please select a PDF file first.');
+      }
 
-// Global Search
-async function handleSearch(query) {
-  const resultsDropdown = document.getElementById("search-results-dropdown");
-  if (query.length < 2) {
-    resultsDropdown.style.display = "none";
-    return;
-  }
-  try {
-    const data = await apiCall(`/pdf/search?q=${encodeURIComponent(query)}`);
-    resultsDropdown.innerHTML = "";
-    if (data.length > 0) {
-      resultsDropdown.style.display = "block";
-      data.forEach(item => {
-        const row = document.createElement("div");
-        row.className = "dropdown-item";
-        row.innerText = item.filename;
-        row.onclick = () => {
-          appState.selectedPdfId = item.id;
-          switchView("summary");
-          loadSummaryView();
-          resultsDropdown.style.display = "none";
-        };
-        resultsDropdown.appendChild(row);
-      });
-    } else {
-      resultsDropdown.style.display = "none";
-    }
-  } catch (err) {
-    console.error(err);
-  }
-}
+      const file = fileInput.files[0];
+      if (statusDisplay) statusDisplay.textContent = 'Uploading file securely to server... Please wait.';
+      
+      const formData = new FormData();
+      formData.append('pdf', file);
 
-// Upload PDF Logic
-async function uploadPdf(input) {
-  const file = input.files[0];
-  if (!file) return;
-
-  const statusEl = document.getElementById("upload-status");
-  statusEl.innerText = "Processing & Extracting PDF details...";
-  
-  const formData = new FormData();
-  formData.append("file", file);
-
-  try {
-    const token = localStorage.getItem("auth_token");
-    const response = await fetch(`${API_BASE_URL}/app/pdf/upload`, {
-      method: "POST",
-      headers: { "Authorization": `Bearer ${token}` },
-      body: formData
+      try {
+        // Sends request directly through centralized clean pipeline to /api/pdf/upload
+        const result = await window.apiService.uploadPDF(formData);
+        console.log('Upload workflow successful:', result);
+        
+        if (statusDisplay) {
+          statusDisplay.style.color = 'green';
+          statusDisplay.textContent = 'Upload Successful! Document uploaded cleanly.';
+        }
+      } catch (error) {
+        console.error('Error encountered inside application layer:', error);
+        if (statusDisplay) {
+          statusDisplay.style.color = 'red';
+          statusDisplay.textContent = `Upload Process Failed: ${error.message}`;
+        }
+      }
     });
-    const result = await response.json();
-    if (!response.ok) throw new Error(result.error);
-
-    statusEl.innerText = `Successfully uploaded: ${result.filename}!`;
-    loadDashboard();
-  } catch (err) {
-    statusEl.innerText = `Upload failed: ${err.message}`;
   }
-}
-
-// Load Document lists dynamically
-async function loadDashboard() {
-  try {
-    const pdfList = await apiCall("/pdf/list");
-    appState.pdfs = pdfList;
-    const listEl = document.getElementById("uploaded-documents");
-    listEl.innerHTML = "";
-    
-    if (pdfList.length === 0) {
-      listEl.innerHTML = "<li>No files in your vault. Start uploading above.</li>";
-      return;
-    }
-
-    pdfList.forEach(pdf => {
-      const li = document.createElement("li");
-      li.innerHTML = `
-        <span>📄 ${pdf.filename}</span>
-        <button class="btn-secondary" onclick="studyDocument('${pdf.id}')">Study</button>
-      `;
-      listEl.appendChild(li);
-    });
-    populateDocumentDropdowns();
-  } catch (err) {
-    console.error(err);
-  }
-}
-
-function studyDocument(pdfId) {
-  appState.selectedPdfId = pdfId;
-  switchView("summary");
-  loadSummaryView();
+});  loadSummaryView();
 }
 
 function populateDocumentDropdowns() {
