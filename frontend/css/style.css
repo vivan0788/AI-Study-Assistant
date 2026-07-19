@@ -1,6 +1,6 @@
 /* frontend/css/style.css */
 
-/* Global Smooth UI Settings */
+/* Reset & Smooth Settings */
 * {
     box-sizing: border-box;
     margin: 0;
@@ -9,141 +9,142 @@
 }
 
 body {
-    background: #0f172a; /* Rich Premium dark background */
+    background: #0f172a; 
     background-image: radial-gradient(circle at 50% 0%, #1e293b 0%, #0f172a 75%);
     color: #f8fafc;
     min-height: 100vh;
-    padding: 40px 20px;
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
+    padding: 20px;
 }
 
-/* Master Glassmorphic Container */
+/* Master Grid Wrapper - Jo sidebar aur main grid ko alag karega */
 .container {
-    width: 100%;
-    max-width: 650px;
+    max-width: 1400px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 320px 1fr; /* Left side fixed, right side flexible */
+    gap: 25px;
+    align-items: start;
+}
+
+@media (max-width: 900px) {
+    .container {
+        grid-template-columns: 1fr; /* Mobile par automatic vertically arrange ho jayega */
+    }
+}
+
+/* ==========================================================================
+   LEFT SIDEBAR: Authentication & Document Upload
+   ========================================================================== */
+#auth-section, #main-section {
     background: rgba(30, 41, 59, 0.7);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     border: 1px solid rgba(255, 255, 255, 0.08);
-    padding: 30px;
+    padding: 20px;
     border-radius: 16px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    margin-bottom: 20px;
 }
 
-/* Typography elements */
+/* Target internal sidebar layouts */
+.sidebar-wrapper {
+    display: flex;
+    flex-direction: column;
+}
+
 h1 {
-    font-size: 2.2rem;
+    font-size: 1.8rem;
     font-weight: 700;
     text-align: center;
-    margin-bottom: 25px;
+    margin-bottom: 20px;
     background: linear-gradient(to right, #38bdf8, #818cf8);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
 }
 
 h2 {
-    font-size: 1.4rem;
+    font-size: 1.2rem;
     color: #94a3b8;
-    margin-bottom: 20px;
-    padding-bottom: 5px;
+    margin-bottom: 15px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 5px;
 }
 
 h3 {
-    font-size: 1.1rem;
+    font-size: 1rem;
     color: #e2e8f0;
-    margin: 15px 0 10px 0;
-}
-
-/* Section Controls */
-.section {
-    margin-bottom: 35px;
+    margin: 10px 0 5px 0;
 }
 
 form {
     background: rgba(15, 23, 42, 0.4);
-    padding: 20px;
+    padding: 15px;
     border-radius: 12px;
     border: 1px solid rgba(255, 255, 255, 0.04);
-    margin-bottom: 20px;
+    margin-bottom: 15px;
 }
 
-/* Input boxes structured layout fix */
 input[type="text"],
 input[type="email"],
 input[type="password"],
-input[type="file"] {
+input[type="file"],
+select {
     width: 100%;
-    padding: 12px 16px;
-    margin: 8px 0 16px 0;
+    padding: 10px 14px;
+    margin: 6px 0 12px 0;
     background: rgba(15, 23, 42, 0.6);
     border: 1px solid rgba(255, 255, 255, 0.15);
     border-radius: 8px;
     color: #fff;
-    font-size: 0.95rem;
-    transition: all 0.3s ease;
+    font-size: 0.9rem;
 }
 
-input:focus {
-    outline: none;
-    border-color: #38bdf8;
-    box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
-}
-
-/* Modern responsive layout for File Inputs */
-input[type="file"] {
-    background: rgba(30, 41, 59, 0.5);
-    cursor: pointer;
-    padding: 10px;
-}
-
-/* Styled Action Buttons */
 button {
     width: 100%;
     background: linear-gradient(135deg, #38bdf8 0%, #4f46e5 100%);
     color: #ffffff;
     border: none;
-    padding: 12px 20px;
+    padding: 10px 15px;
     border-radius: 8px;
     cursor: pointer;
-    font-size: 1rem;
     font-weight: 600;
-    transition: transform 0.2s, opacity 0.2s;
-    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+    font-size: 0.95rem;
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2);
 }
 
 button:hover {
-    transform: translateY(-1px);
     opacity: 0.95;
 }
 
-button:active {
-    transform: translateY(1px);
+/* ==========================================================================
+   RIGHT DASHBOARD GRID: Tools & AI Feature Windows
+   ========================================================================== */
+/* Agar aapke index.html me right sections kisi main div me wrap nahi hain, 
+   toh dashboard automatically grid block handle karega */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
 }
 
-/* Status logs UI styling cards (Summary & Breakdown targets) */
-#global-status, #upload-status {
-    font-size: 0.95rem;
-    padding: 10px;
-    border-radius: 6px;
-    margin-top: 5px;
-    text-align: center;
+/* Individual Feature Cards (Chat, Exam, Flashcard boxes) */
+.feature-card, 
+[id*="summary"], 
+[id*="chat"], 
+[id*="exam"], 
+[id*="flashcard"] {
+    background: rgba(30, 41, 59, 0.5);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    display: inline-block; /* Prevent overlapping */
+    vertical-align: top;
+    width: 100%;
+    margin-bottom: 15px;
 }
 
 hr {
-    border: 0;
-    height: 1px;
-    background: linear-gradient(to right, rgba(255,255,255,0), rgba(255,255,255,0.15), rgba(255,255,255,0));
-    margin: 30px 0;
-}
-
-/* AI output placeholder blocks alignment matching layout */
-.ai-card {
-    background: rgba(30, 41, 59, 0.8);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    padding: 20px;
-    border-radius: 12px;
-    margin-top: 20px;
+    display: none; /* Old layout element removed */
 }
