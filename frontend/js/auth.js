@@ -2,25 +2,49 @@
 document.addEventListener('DOMContentLoaded', () => {
   const loginForm = document.getElementById('login-form');
   const registerForm = document.getElementById('register-form');
-  const errorDisplay = document.getElementById('error-message'); // Make sure you have this in HTML
+  const globalStatus = document.getElementById('global-status');
 
+  // Handle Login submission
   if (loginForm) {
     loginForm.addEventListener('submit', async (e) => {
       e.preventDefault();
-      if (errorDisplay) errorDisplay.textContent = '';
+      if (globalStatus) globalStatus.textContent = '';
 
-      const email = document.getElementById('email').value;
-      const password = document.getElementById('password').value;
+      const email = document.getElementById('login-email').value;
+      const password = document.getElementById('login-password').value;
 
       try {
         const data = await window.apiService.login(email, password);
-        console.log('Login successful:', data);
+        console.log('Login successful data response:', data);
         
-        // Token save karein aur dashboard par redirect karein
-        localStorage.setItem('token', data.token);
-        window.location.href = '/dashboard.html'; 
+        if (data && data.token) {
+          localStorage.setItem('token', data.token);
+          alert('Login Successful!');
+        } else {
+          alert('Logged in successfully (No token returned).');
+        }
       } catch (err) {
-        if (errorDisplay) errorDisplay.textContent = err.message;
+        if (globalStatus) globalStatus.textContent = `Login Error: ${err.message}`;
+      }
+    });
+  }
+
+  // Handle Register submission
+  if (registerForm) {
+    registerForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (globalStatus) globalStatus.textContent = '';
+
+      const username = document.getElementById('register-username').value;
+      const email = document.getElementById('register-email').value;
+      const password = document.getElementById('register-password').value;
+
+      try {
+        const data = await window.apiService.register(username, email, password);
+        console.log('Registration successful data response:', data);
+        alert('Registration Successful! You can now log in.');
+      } catch (err) {
+        if (globalStatus) globalStatus.textContent = `Registration Error: ${err.message}`;
       }
     });
   }
