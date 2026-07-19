@@ -1,12 +1,7 @@
 // frontend/js/api.js
 const BASE_URL = 'https://ai-study-assistant-m4m7.onrender.com/api';
 
-/**
- * Ek common helper function jo response ko safely text format mein nikalta hai,
- * use log karta hai, aur check karta hai ki HTML (jaise Vercel ka 404 page) toh nahi aa raha.
- */
 async function safeFetch(endpoint, options = {}) {
-  // Check karein ki endpoint proper format mein hai ya nahi
   const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
   const url = `${BASE_URL}${cleanEndpoint}`;
 
@@ -16,7 +11,7 @@ async function safeFetch(endpoint, options = {}) {
     const response = await fetch(url, options);
     console.log(`[API Response Status] Code: ${response.status} ${response.statusText}`);
 
-    // Response ko sabse pehle raw text mein read karein taaki HTML hone par crash na ho
+    // Read response as text first to prevent JSON parse crashes on HTML errors
     const rawBody = await response.text();
     console.log(`[API Response Body]:`, rawBody);
 
@@ -24,12 +19,11 @@ async function safeFetch(endpoint, options = {}) {
       throw new Error(`HTTP Error ${response.status}: ${rawBody || response.statusText}`);
     }
 
-    // Agar server ne HTML return kiya hai (jo '<' se start hota hai) toh error throw karein
+    // Check if the server mistakenly sent an HTML error page instead of JSON
     if (rawBody.trim().startsWith('<!DOCTYPE') || rawBody.trim().startsWith('<html')) {
-      throw new Error("Server returned HTML instead of valid JSON. Check your API routes.");
+      throw new Error("Server returned HTML markup instead of valid JSON data. Check your API configuration.");
     }
 
-    // Agar sab sahi hai, tabhi JSON parse karein
     return JSON.parse(rawBody);
   } catch (error) {
     console.error(`[API Error Log] Failed during request to ${url}:`, error);
@@ -37,7 +31,7 @@ async function safeFetch(endpoint, options = {}) {
   }
 }
 
-// Global window object par expose kar rahe hain taaki auth.js aur app.js ise use kar sakein
+// Global scope initialization
 window.apiService = {
   login: async (email, password) => {
     return safeFetch('/auth/login', {
@@ -55,11 +49,11 @@ window.apiService = {
     });
   },
 
-  // /pdf/upload endpoint ab correctly '/api/pdf/upload' par hit karega
+  // Hits correctly: https://ai-study-assistant-m4m7.onrender.com/api/pdf/upload
   uploadPDF: async (formData) => {
     return safeFetch('/pdf/upload', {
       method: 'POST',
-      body: formData, // FormData ke sath Content-Type header manually nahi lagate
+      body: formData, // Browser sets the multipart content-type boundary automatically
     });
   },
 
