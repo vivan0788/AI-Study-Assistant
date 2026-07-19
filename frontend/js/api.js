@@ -11,7 +11,6 @@ async function safeFetch(endpoint, options = {}) {
     const response = await fetch(url, options);
     console.log(`[API Response Status] Code: ${response.status} ${response.statusText}`);
 
-    // Read response as text first to prevent JSON parse crashes on HTML errors
     const rawBody = await response.text();
     console.log(`[API Response Body]:`, rawBody);
 
@@ -19,9 +18,8 @@ async function safeFetch(endpoint, options = {}) {
       throw new Error(`HTTP Error ${response.status}: ${rawBody || response.statusText}`);
     }
 
-    // Check if the server mistakenly sent an HTML error page instead of JSON
     if (rawBody.trim().startsWith('<!DOCTYPE') || rawBody.trim().startsWith('<html')) {
-      throw new Error("Server returned HTML markup instead of valid JSON data. Check your API configuration.");
+      throw new Error("Server returned HTML markup instead of valid JSON data.");
     }
 
     return JSON.parse(rawBody);
@@ -41,19 +39,28 @@ window.apiService = {
     });
   },
 
+  // FIX: Bheje jaane wale JSON body mein backend ke saare possible name configurations targets inject kar diye hain
   register: async (username, email, password) => {
+    const payload = {
+      username: username,
+      name: username,      // Kuch backend architectures 'name' field expect karte hain
+      email: email,
+      password: password
+    };
+    
+    console.log("[Register Payload Debug]:", payload);
+
     return safeFetch('/auth/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, email, password }),
+      body: JSON.stringify(payload),
     });
   },
 
-  // Hits correctly: https://ai-study-assistant-m4m7.onrender.com/api/pdf/upload
   uploadPDF: async (formData) => {
     return safeFetch('/pdf/upload', {
       method: 'POST',
-      body: formData, // Browser sets the multipart content-type boundary automatically
+      body: formData,
     });
   },
 
